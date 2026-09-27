@@ -24,20 +24,22 @@ export default function App() {
   const [editing, setEditing] = useState<EditTarget | null>(null);
   const [dictOpen, setDictOpen] = useState(false);
 
+  const tokenize = tokenizer.status === 'ready' ? tokenizer.tokenize : null;
   const result = useMemo(() => {
-    if (tokenizer.status !== 'ready') return null;
-    const lines = analyze(debouncedText, tokenizer.tokenize, {
+    if (!tokenize) return null;
+    const lines = analyze(debouncedText, tokenize, {
       settings,
       userDict: userDict.entries,
       overrides,
     });
     return render(lines, settings);
-  }, [tokenizer, debouncedText, settings, userDict.entries, overrides]);
+  }, [tokenize, debouncedText, settings, userDict.entries, overrides]);
 
+  const upsertUserDict = userDict.upsert;
   const handleSubmitReading = useCallback(
     (target: EditTarget, token: Token, reading: string, addToDict: boolean) => {
       if (addToDict) {
-        userDict.upsert(token.surface, reading);
+        upsertUserDict(token.surface, reading);
         // 辞書に入れたら、このトークンの手動修正は不要になる
         setOverrides((prev) => {
           const next = { ...prev };
@@ -52,7 +54,7 @@ export default function App() {
       }
       setEditing(null);
     },
-    [userDict],
+    [upsertUserDict],
   );
 
   const handleClearReading = useCallback((target: EditTarget, token: Token) => {

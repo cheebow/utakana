@@ -42,3 +42,11 @@ describe('normalizeUserDict', () => {
     ).toEqual([{ surface: 'a', reading: 'y' }]);
   });
 });
+
+describe('normalizeUserDict (line safety)', () => {
+  it('drops surfaces containing a newline', () => {
+    expect(normalizeUserDict([{ surface: 'a\nb', reading: 'x' }, { surface: 'c', reading: 'y' }])).toEqual([
+      { surface: 'c', reading: 'y' },
+    ]);
+  });
+});

@@ -35,7 +35,7 @@ export function isKatakana(ch: string): boolean {
 }
 /** 長音記号 */
 export function isChoonpu(ch: string): boolean {
-  return ch === 'ー' || ch === 'ー';
+  return ch === 'ー';
 }
 /** かな文字か（長音記号を含む） */
 export function isKana(ch: string): boolean {

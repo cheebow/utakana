@@ -34,6 +34,9 @@ export interface ConvertResult {
   moraCount: MoraCount;
 }
 
+/** ID 付与前のトークン（行に配置するときに id を振る） */
+type TokenDraft = Omit<Token, 'id'>;
+
 const SYMBOL_POS = new Set(['記号']);
 
 function isWhitespace(s: string): boolean {
@@ -41,7 +44,7 @@ function isWhitespace(s: string): boolean {
 }
 
 /** 形態素解析の生トークンを共通 Token に正規化する */
-function normalizeRawToken(raw: RawToken): Omit<Token, 'id'> {
+function normalizeRawToken(raw: RawToken): TokenDraft {
   const surface = raw.surface;
   if (raw.partOfSpeech === 'UNK') {
     if (isAllKana(surface)) {
@@ -74,8 +77,8 @@ function isAllKanji(s: string): boolean {
  * （例: 既読 → 既[スンデ] + 読[UNK]）。連続する漢字のみのトークンのうち
  * 未知語を含む並びは 1 つの「未変換」トークンにまとめ、誤読を出さずにユーザーへ委ねる。
  */
-function mergeUnknownKanji(tokens: Omit<Token, 'id'>[]): Omit<Token, 'id'>[] {
-  const out: Omit<Token, 'id'>[] = [];
+function mergeUnknownKanji(tokens: TokenDraft[]): TokenDraft[] {
+  const out: TokenDraft[] = [];
   let i = 0;
   while (i < tokens.length) {
     if (!isAllKanji(tokens[i].surface)) {
@@ -108,7 +111,7 @@ function segmentsToLines(segments: Segment[], tokenize: TokenizeFn, settings: Se
   const lines: Line[] = [{ index: 0, tokens: [] }];
   const current = () => lines[lines.length - 1];
   const newLine = () => lines.push({ index: lines.length, tokens: [] });
-  const push = (t: Omit<Token, 'id'>) => {
+  const push = (t: TokenDraft) => {
     const line = current();
     line.tokens.push({ ...t, id: `${line.index}:${line.tokens.length}` });
   };
@@ -129,7 +132,7 @@ function segmentsToLines(segments: Segment[], tokenize: TokenizeFn, settings: Se
     parts.forEach((part, i) => {
       if (i > 0) newLine();
       if (part.length === 0) return;
-      const toks: Omit<Token, 'id'>[] = [];
+      const toks: TokenDraft[] = [];
       for (const raw of tokenize(part)) {
         if (isWhitespace(raw.surface)) continue;
         const tok = normalizeRawToken(raw);

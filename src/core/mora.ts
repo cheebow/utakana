@@ -4,9 +4,9 @@ import type { HatsuonMode, SokuonMode } from './types';
 /** かな 1 文字の母音（あいうえお）。母音を持たないもの（ん・っ・ー）は null */
 const VOWEL_ROWS: Record<string, string> = {
   a: 'あかさたなはまやらわがざだばぱぁゃゎゕ',
-  i: 'いきしちにひみりぎじぢびぴぃ',
+  i: 'いきしちにひみりぎじぢびぴぃゐ',
   u: 'うくすつぬふむゆるぐずづぶぷぅゅゔ',
-  e: 'えけせてねへめれげぜでべぺぇゖ',
+  e: 'えけせてねへめれげぜでべぺぇゖゑ',
   o: 'おこそとのほもよろごぞどぼぽぉょを',
 };
 const VOWEL_KANA: Record<string, string> = { a: 'あ', i: 'い', u: 'う', e: 'え', o: 'お' };

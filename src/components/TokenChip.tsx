@@ -1,4 +1,4 @@
-import type { Token } from '../core/types';
+import type { Token, TokenSource } from '../core/types';
 
 interface Props {
   token: Token;
@@ -7,12 +7,14 @@ interface Props {
   onClick: () => void;
 }
 
-function sourceClass(token: Token): string {
+type ChipKind = TokenSource | 'manual';
+
+function chipKind(token: Token): ChipKind {
   if (token.manualReading) return 'manual';
   return token.source;
 }
 
-const SOURCE_LABEL: Record<string, string> = {
+const SOURCE_LABEL: Record<ChipKind, string> = {
   dict: '辞書',
   ruby: 'ルビ',
   user: 'ユーザー辞書',
@@ -21,14 +23,14 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 export function TokenChip({ token, reading, active, onClick }: Props) {
-  const cls = sourceClass(token);
+  const cls = chipKind(token);
   const showSurface = token.surface !== reading;
   return (
     <button
       type="button"
       className={`chip chip-${cls}${active ? ' chip-active' : ''}`}
       onClick={onClick}
-      title={`${SOURCE_LABEL[cls] ?? cls}: ${token.surface} → ${reading}（クリックで読みを修正）`}
+      title={`${SOURCE_LABEL[cls]}: ${token.surface} → ${reading}（クリックで読みを修正）`}
     >
       <span className="chip-reading">{reading || ' '}</span>
       {showSurface ? <span className="chip-surface">{token.surface}</span> : null}

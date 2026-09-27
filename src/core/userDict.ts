@@ -3,13 +3,13 @@ import type { FixedSource, Segment, UserDictEntry } from './types';
 const NUMERAL_HEAD = /^[0-9一二三四五六七八九十百千何]/;
 const NUMERAL_CHAR = /^[0-9一二三四五六七八九十百千万億兆]$/;
 
-/** 見出し語の重複を除き（後勝ち）、空の見出し語を捨てる */
+/** 見出し語の重複を除き（後勝ち）、空・改行入りの見出し語を捨てる（改行入りは行構造を壊す） */
 export function normalizeUserDict(entries: UserDictEntry[]): UserDictEntry[] {
   const map = new Map<string, string>();
   for (const e of entries) {
     const surface = e.surface.trim();
     const reading = e.reading.trim();
-    if (!surface || !reading) continue;
+    if (!surface || !reading || surface.includes('\n')) continue;
     map.set(surface, reading);
   }
   return [...map].map(([surface, reading]) => ({ surface, reading }));

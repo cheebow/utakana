@@ -22,7 +22,10 @@ export function TokenEditor({ token, currentReading, onSubmit, onClear, onCancel
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) onCancel();
+      // エディタとそれを開いたチップ（同じ chip-wrap 内）以外をクリックしたら閉じる。
+      // チップ自身を外側扱いにすると、閉じた直後に click でまた開いてしまう
+      const wrap = rootRef.current?.parentElement ?? rootRef.current;
+      if (wrap && !wrap.contains(e.target as Node)) onCancel();
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * localStorage に永続化する useState。
@@ -32,6 +32,5 @@ export function useLocalStorage<T>(
       /* ignore */
     }
   }, [key, value]);
-  const set = useCallback((next: T | ((prev: T) => T)) => setValue(next), []);
-  return [value, set];
+  return [value, setValue];
 }

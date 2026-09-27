@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { UserDictEntry } from '../core/types';
 import { normalizeUserDict } from '../core/userDict';
 import { useLocalStorage } from './useLocalStorage';
@@ -49,5 +49,8 @@ export function useUserDict() {
   );
   const toJson = useCallback(() => JSON.stringify(entries, null, 2), [entries]);
 
-  return { entries, upsert, remove, replaceAll, merge, toJson };
+  return useMemo(
+    () => ({ entries, upsert, remove, replaceAll, merge, toJson }),
+    [entries, upsert, remove, replaceAll, merge, toJson],
+  );
 }

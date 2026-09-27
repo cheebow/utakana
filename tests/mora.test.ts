@@ -63,3 +63,10 @@ describe('mergeRepeatedVowels', () => {
     expect(mergeRepeatedVowels(['か', 'い'])).toEqual(['か', 'い']);
   });
 });
+
+describe('vowelOf (historical kana)', () => {
+  it('maps ゐ and ゑ', () => {
+    expect(vowelOf('ゐ')).toBe('い');
+    expect(vowelOf('ゑ')).toBe('え');
+  });
+});

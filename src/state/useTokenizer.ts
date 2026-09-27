@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { loadTokenizer, type TokenizeFn } from '../core/tokenizer';
 
 export type TokenizerState =
@@ -27,5 +27,6 @@ export function useTokenizer(): TokenizerState & { retry: () => void } {
   }, [attempt]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
-  return { ...state, retry };
+  // 返り値を安定させ、利用側の useMemo / useCallback の依存に使えるようにする
+  return useMemo(() => ({ ...state, retry }), [state, retry]);
 }
