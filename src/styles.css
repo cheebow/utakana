@@ -172,6 +172,9 @@ select:focus {
   font-size: 0.8rem;
   text-align: center;
 }
+.app-footer p {
+  margin: 0.25em 0;
+}
 
 .status {
   display: flex;

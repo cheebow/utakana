@@ -134,8 +134,14 @@ export default function App() {
       />
 
       <footer className="app-footer">
-        形態素解析: <a href="https://github.com/lindera/lindera-wasm" target="_blank" rel="noreferrer">lindera-wasm</a> (IPADIC)。
-        入力・設定・辞書はこのブラウザ内（localStorage）にだけ保存されます。
+        <p>
+          形態素解析: <a href="https://github.com/lindera/lindera-wasm" target="_blank" rel="noreferrer">lindera-wasm</a> (IPADIC)。
+          入力・設定・辞書はこのブラウザ内（localStorage）にだけ保存されます。
+        </p>
+        <p>
+          &copy; 2026 cheebow ·{' '}
+          <a href="https://github.com/cheebow/utakana" target="_blank" rel="noreferrer">GitHub</a> · MIT License
+        </p>
       </footer>
     </div>
   );
