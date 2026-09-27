@@ -139,7 +139,7 @@ export default function App() {
           入力・設定・辞書はこのブラウザ内（localStorage）にだけ保存されます。
         </p>
         <p>
-          &copy; 2026 cheebow ·{' '}
+          &copy; 2026 CHEEBOW ·{' '}
           <a href="https://github.com/cheebow/utakana" target="_blank" rel="noreferrer">GitHub</a> · MIT License
         </p>
       </footer>

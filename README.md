@@ -45,5 +45,5 @@ tests/         vitest（core の単体テスト + 実 wasm の統合テスト）
 
 ## ライセンス
 
-- アプリ本体: MIT（[LICENSE](LICENSE)）。© 2026 cheebow
+- アプリ本体: MIT（[LICENSE](LICENSE)）。© 2026 CHEEBOW
 - lindera-wasm: MIT。IPADIC 辞書のライセンスは同梱 wasm の配布元に従います
