@@ -29,7 +29,7 @@ npm run preview    # 本番ビルドの確認
 
 `npm run build` で生成される `dist/` をそのまま置くだけで動きます（`base: './'` なのでサブディレクトリ配下でも可）。
 
-- **GitHub Pages**: `dist/` の中身を `gh-pages` ブランチ（またはリポジトリの `docs/`）にコピーして公開
+- **GitHub Pages**: `main` への push で `.github/workflows/pages.yml` がテスト・ビルド・デプロイを行う（公開 URL: https://cheebow.github.io/utakana/）
 - **Netlify / Cloudflare Pages / Vercel**: ビルドコマンド `npm run build`、公開ディレクトリ `dist`
 - 任意の Web サーバー: `dist/` を配置。wasm（約 13MB）は `application/wasm` で配信され、`Cache-Control` を長めにするとリピート時の読み込みが速くなります
 
