@@ -1,0 +1,49 @@
+# うたかな (Utakana)
+
+日本語の歌詞（漢字かな混じり）を、SynthesizerV / VOCALOID の歌詞欄にそのまま流し込める **ひらがな** に変換する Web アプリです。
+ブラウザだけで動作し（Mac / Windows 共通）、インストール不要。形態素解析はブラウザ内の WebAssembly（[lindera-wasm](https://github.com/lindera/lindera-wasm) + IPADIC）で行うため、歌詞がサーバーに送られることはありません。
+
+## 機能
+
+- 漢字かな混じりの歌詞 → ひらがな（行構造を維持）
+- **発音寄り変換**（既定 ON）: は→わ、へ→え、を→お、東京→とおきょお など。長音「ー」は直前の母音 / `-` / そのまま / 削除 を選択可
+- **音符単位の整形**: 促音「っ」は直前のモーラに付け（もっ・くっ）、行末の「っ」は落とす（既定）。撥音「ん」は単独（既定）か直前に付けるかを選択可。SynthV に流し込んで戻した歌詞の形に合わせている
+- **読みの手動修正**: 結果のチップをクリックして読みを直接入力（Enter 確定 / Esc 取消）
+- **ユーザー辞書**: 修正時に「ユーザー辞書に登録」で以降の変換に自動適用。一覧・追加・削除・JSON 入出力
+- **内蔵補助辞書**: IPADIC に無い語（既読 など）や数詞＋助数詞（一人→ひとり、一歩→いっぽ）を補正。辞書に無い漢字の連続は誤読を出さず「未変換」チップにまとめてユーザーに委ねる
+- **ルビ記法の入力対応**: `|運命《さだめ》` / `運命《さだめ》` / `運命（さだめ）`
+- **出力形式**: 連続 / スペース区切り。行ごとのモーラ数と合計を表示、ワンクリックでコピー
+- 入力の下書き・設定・辞書はブラウザの localStorage にだけ保存
+
+## 開発
+
+```sh
+npm install
+npm run dev        # http://localhost:5173
+npm test           # vitest（実 wasm を使った統合テストを含む）
+npm run build      # dist/ を生成
+npm run preview    # 本番ビルドの確認
+```
+
+## 静的ホスティングへの配置
+
+`npm run build` で生成される `dist/` をそのまま置くだけで動きます（`base: './'` なのでサブディレクトリ配下でも可）。
+
+- **GitHub Pages**: `dist/` の中身を `gh-pages` ブランチ（またはリポジトリの `docs/`）にコピーして公開
+- **Netlify / Cloudflare Pages / Vercel**: ビルドコマンド `npm run build`、公開ディレクトリ `dist`
+- 任意の Web サーバー: `dist/` を配置。wasm（約 13MB）は `application/wasm` で配信され、`Cache-Control` を長めにするとリピート時の読み込みが速くなります
+
+## 構成
+
+```
+src/
+  core/        UI 非依存の純粋ロジック（kana / ruby / userDict / tokenizer / convert / rules / mora / format）
+  state/       設定・ユーザー辞書・下書きの永続化 hook、wasm ローダー
+  components/  React コンポーネント
+tests/         vitest（core の単体テスト + 実 wasm の統合テスト）
+```
+
+## ライセンス
+
+- アプリ本体: MIT
+- lindera-wasm: MIT。IPADIC 辞書のライセンスは同梱 wasm の配布元に従います

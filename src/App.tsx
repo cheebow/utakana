@@ -1,0 +1,142 @@
+import { useCallback, useMemo, useState } from 'react';
+import { LyricsInput } from './components/LyricsInput';
+import { OutputPanel } from './components/OutputPanel';
+import { ResultView, type EditTarget } from './components/ResultView';
+import { SettingsPanel } from './components/SettingsPanel';
+import { UserDictDialog } from './components/UserDictDialog';
+import { analyze, overrideKey, render, type ReadingOverrides } from './core/convert';
+import type { Token } from './core/types';
+import { useSettings } from './state/settings';
+import { useDebounced } from './state/useDebounced';
+import { useLocalStorage } from './state/useLocalStorage';
+import { useTokenizer } from './state/useTokenizer';
+import { useUserDict } from './state/userDictStore';
+
+const DRAFT_KEY = 'utakana:draft';
+
+export default function App() {
+  const tokenizer = useTokenizer();
+  const { settings, update: updateSettings, reset: resetSettings } = useSettings();
+  const userDict = useUserDict();
+  const [text, setText] = useLocalStorage<string>(DRAFT_KEY, '', (raw) => (typeof raw === 'string' ? raw : null));
+  const debouncedText = useDebounced(text, 300);
+  const [overrides, setOverrides] = useState<ReadingOverrides>({});
+  const [editing, setEditing] = useState<EditTarget | null>(null);
+  const [dictOpen, setDictOpen] = useState(false);
+
+  const result = useMemo(() => {
+    if (tokenizer.status !== 'ready') return null;
+    const lines = analyze(debouncedText, tokenizer.tokenize, {
+      settings,
+      userDict: userDict.entries,
+      overrides,
+    });
+    return render(lines, settings);
+  }, [tokenizer, debouncedText, settings, userDict.entries, overrides]);
+
+  const handleSubmitReading = useCallback(
+    (target: EditTarget, token: Token, reading: string, addToDict: boolean) => {
+      if (addToDict) {
+        userDict.upsert(token.surface, reading);
+        // 辞書に入れたら、このトークンの手動修正は不要になる
+        setOverrides((prev) => {
+          const next = { ...prev };
+          delete next[overrideKey(target.lineIndex, target.tokenIndex, token.surface)];
+          return next;
+        });
+      } else {
+        setOverrides((prev) => ({
+          ...prev,
+          [overrideKey(target.lineIndex, target.tokenIndex, token.surface)]: reading,
+        }));
+      }
+      setEditing(null);
+    },
+    [userDict],
+  );
+
+  const handleClearReading = useCallback((target: EditTarget, token: Token) => {
+    setOverrides((prev) => {
+      const next = { ...prev };
+      delete next[overrideKey(target.lineIndex, target.tokenIndex, token.surface)];
+      return next;
+    });
+    setEditing(null);
+  }, []);
+
+  const handleTextChange = useCallback(
+    (value: string) => {
+      setText(value);
+      setEditing(null);
+    },
+    [setText],
+  );
+
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1>
+          うたかな <small>歌詞 → ひらがな（SynthesizerV / VOCALOID 用）</small>
+        </h1>
+        <div className="header-actions">
+          <button type="button" className="ghost" onClick={() => setDictOpen(true)}>
+            ユーザー辞書
+            {userDict.entries.length > 0 ? <span className="badge">{userDict.entries.length}</span> : null}
+          </button>
+        </div>
+      </header>
+
+      {tokenizer.status === 'loading' ? (
+        <div className="status loading" role="status">
+          <span className="spinner" aria-hidden="true" /> 辞書を読み込んでいます（初回は約 13MB のダウンロードが必要です）…
+        </div>
+      ) : null}
+      {tokenizer.status === 'error' ? (
+        <div className="status error" role="alert">
+          辞書の読み込みに失敗しました: {tokenizer.message}
+          <button type="button" className="ghost" onClick={tokenizer.retry}>
+            再試行
+          </button>
+        </div>
+      ) : null}
+
+      <main className="panes">
+        <div className="pane pane-left">
+          <LyricsInput value={text} onChange={handleTextChange} />
+          <SettingsPanel settings={settings} onChange={updateSettings} onReset={resetSettings} />
+        </div>
+        <div className="pane pane-right">
+          <ResultView
+            lines={result?.lines ?? []}
+            editing={editing}
+            onEdit={setEditing}
+            onSubmitReading={handleSubmitReading}
+            onClearReading={handleClearReading}
+          />
+          <OutputPanel
+            output={result?.output ?? ''}
+            moraCount={result?.moraCount ?? { perLine: [], total: 0 }}
+            format={settings.outputFormat}
+            onFormatChange={(outputFormat) => updateSettings({ outputFormat })}
+          />
+        </div>
+      </main>
+
+      <UserDictDialog
+        open={dictOpen}
+        entries={userDict.entries}
+        onClose={() => setDictOpen(false)}
+        onUpsert={userDict.upsert}
+        onRemove={userDict.remove}
+        onMerge={userDict.merge}
+        onReplaceAll={userDict.replaceAll}
+        toJson={userDict.toJson}
+      />
+
+      <footer className="app-footer">
+        形態素解析: <a href="https://github.com/lindera/lindera-wasm" target="_blank" rel="noreferrer">lindera-wasm</a> (IPADIC)。
+        入力・設定・辞書はこのブラウザ内（localStorage）にだけ保存されます。
+      </footer>
+    </div>
+  );
+}
