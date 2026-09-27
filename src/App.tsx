@@ -13,6 +13,17 @@ import { useTokenizer } from './state/useTokenizer';
 import { useUserDict } from './state/userDictStore';
 
 const DRAFT_KEY = 'utakana:draft';
+const OVERRIDES_KEY = 'utakana:overrides';
+
+/** 保存されていた手動修正を検証する（文字列→文字列の辞書だけを受け付ける） */
+function validateOverrides(raw: unknown): ReadingOverrides | null {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
+  const out: ReadingOverrides = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === 'string' && value !== '') out[key] = value;
+  }
+  return out;
+}
 
 export default function App() {
   const tokenizer = useTokenizer();
@@ -20,7 +31,7 @@ export default function App() {
   const userDict = useUserDict();
   const [text, setText] = useLocalStorage<string>(DRAFT_KEY, '', (raw) => (typeof raw === 'string' ? raw : null));
   const debouncedText = useDebounced(text, 300);
-  const [overrides, setOverrides] = useState<ReadingOverrides>({});
+  const [overrides, setOverrides] = useLocalStorage<ReadingOverrides>(OVERRIDES_KEY, {}, validateOverrides);
   const [editing, setEditing] = useState<EditTarget | null>(null);
   const [dictOpen, setDictOpen] = useState(false);
 
@@ -138,7 +149,7 @@ export default function App() {
       <footer className="app-footer">
         <p>
           形態素解析: <a href="https://github.com/lindera/lindera-wasm" target="_blank" rel="noreferrer">lindera-wasm</a> (IPADIC)。
-          入力・設定・辞書はこのブラウザ内（localStorage）にだけ保存されます。
+          入力・設定・辞書・手動修正した読みはこのブラウザ内（localStorage）にだけ保存されます。
         </p>
         <p>
           &copy; 2026 CHEEBOW ·{' '}
