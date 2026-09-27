@@ -81,8 +81,10 @@ export default function App() {
     (value: string) => {
       setText(value);
       setEditing(null);
+      // 歌詞が空になったら（「クリア」や全削除）、古い歌詞向けの手動修正も捨てる
+      if (value === '') setOverrides({});
     },
-    [setText],
+    [setText, setOverrides],
   );
 
   return (
