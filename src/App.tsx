@@ -150,7 +150,8 @@ export default function App() {
 
       <footer className="app-footer">
         <p>
-          形態素解析: <a href="https://github.com/lindera/lindera-wasm" target="_blank" rel="noreferrer">lindera-wasm</a> (IPADIC)。
+          形態素解析: <a href="https://github.com/lindera/lindera-wasm" target="_blank" rel="noreferrer">lindera-wasm</a> (IPADIC) ·{' '}
+          <a href="./NOTICE.txt" target="_blank" rel="noreferrer">第三者ライセンス</a>。
           入力・設定・辞書・手動修正した読みはこのブラウザ内（localStorage）にだけ保存されます。
         </p>
         <p>
