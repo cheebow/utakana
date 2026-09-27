@@ -36,17 +36,36 @@ export function SettingsPanel({ settings, onChange, onReset }: Props) {
         <label className="select-label block">
           促音「っ」の扱い
           <select value={settings.sokuon} onChange={(e) => onChange({ sokuon: e.target.value as SokuonMode })}>
-            <option value="attach">直前のモーラに付ける（もっ・くっ。行末は削除）</option>
-            <option value="separate">単独のモーラにする</option>
+            <option value="attach">直前の音に付ける（もっ・くっ。行末は削除）</option>
+            <option value="separate">単独の音にする</option>
+            <option value="vowel">直前の母音にする（あがって → あがあて）</option>
             <option value="drop">削除する</option>
           </select>
         </label>
         <label className="select-label block">
           撥音「ん」の扱い
           <select value={settings.hatsuon} onChange={(e) => onChange({ hatsuon: e.target.value as HatsuonMode })}>
-            <option value="separate">単独のモーラにする</option>
-            <option value="attach">直前のモーラに付ける（せん・ほん）</option>
+            <option value="separate">単独の音にする</option>
+            <option value="attach">直前の音に付ける（せん・ほん）</option>
           </select>
+        </label>
+        <label className="toggle">
+          <input type="checkbox" checked={settings.eiToEe} onChange={(e) => onChange({ eiToEe: e.target.checked })} />
+          <span>
+            えい → ええ <small>（先生→せんせえ、きれい→きれえ）</small>
+          </span>
+        </label>
+        <label className="toggle">
+          <input type="checkbox" checked={settings.iuToYuu} onChange={(e) => onChange({ iuToYuu: e.target.checked })} />
+          <span>
+            言う → ゆう <small>（そう言う→そおゆう）</small>
+          </span>
+        </label>
+        <label className="toggle">
+          <input type="checkbox" checked={settings.mergeSameVowel} onChange={(e) => onChange({ mergeSameVowel: e.target.checked })} />
+          <span>
+            同じ母音の連続を 1 つにまとめる <small>（とおきょお→ときょ。長い音符 1 つで歌わせるとき）</small>
+          </span>
         </label>
         <label className="toggle">
           <input type="checkbox" checked={settings.woToO} onChange={(e) => onChange({ woToO: e.target.checked })} />

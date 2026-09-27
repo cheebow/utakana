@@ -87,6 +87,13 @@ describe('convert (real wasm)', () => {
     expect(o('ホントに無力', { hatsuon: 'attach' })).toBe('ほん と に む りょ く');
     expect(o('ホントに無力')).toBe('ほ ん と に む りょ く');
   });
+  it('applies the options learned from ボカロ語変換', () => {
+    const o = (t: string, extra = {}) => convert(t, tokenize, opts({ outputFormat: 'space', ...extra })).output;
+    expect(o('先生に映画をそう言う')).toBe('せ ん せ え に え え が お そ お ゆ う');
+    expect(o('あがって', { sokuon: 'vowel' })).toBe('あ が あ て');
+    expect(o('東京の音', { mergeSameVowel: true })).toBe('と きょ の お と');
+    expect(o('あがって', { sokuon: 'vowel', mergeSameVowel: true })).toBe('あ が て');
+  });
   it('handles empty input', () => {
     const result = convert('', tokenize, opts());
     expect(result.output).toBe('');

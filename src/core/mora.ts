@@ -70,6 +70,22 @@ export function countMora(text: string): number {
   return splitMora(text).length;
 }
 
+const VOWELS = new Set(['あ', 'い', 'う', 'え', 'お']);
+
+/**
+ * 同じ母音の連続を 1 つにまとめる（とおきょお → ときょ、ええ → え）。
+ * 1 トークン内で使う想定（「この音」のようにトークンをまたぐ連続はまとめない）。
+ */
+export function mergeRepeatedVowels(moras: string[]): string[] {
+  const out: string[] = [];
+  for (const m of moras) {
+    const prev = out[out.length - 1];
+    if (prev !== undefined && VOWELS.has(m) && vowelOf([...prev].at(-1)) === m) continue;
+    out.push(m);
+  }
+  return out;
+}
+
 export interface MoraRuleOptions {
   sokuon: SokuonMode;
   hatsuon: HatsuonMode;

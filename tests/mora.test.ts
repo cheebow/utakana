@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyMoraRules, splitMora, vowelOf } from '../src/core/mora';
+import { applyMoraRules, mergeRepeatedVowels, splitMora, vowelOf } from '../src/core/mora';
 
 describe('splitMora', () => {
   it('splits basic hiragana', () => {
@@ -48,5 +48,18 @@ describe('applyMoraRules', () => {
     expect(applyMoraRules(['ほ', 'ん', 'と'], { sokuon: 'attach', hatsuon: 'attach' })).toEqual(['ほん', 'と']);
     expect(applyMoraRules(['ん', 'と'], { sokuon: 'attach', hatsuon: 'attach' })).toEqual(['ん', 'と']);
     expect(applyMoraRules(['ほ', 'ん', 'と'], attach)).toEqual(['ほ', 'ん', 'と']);
+  });
+});
+
+describe('mergeRepeatedVowels', () => {
+  it('merges a vowel that repeats the previous mora vowel', () => {
+    expect(mergeRepeatedVowels(['と', 'お', 'きょ', 'お'])).toEqual(['と', 'きょ']);
+    expect(mergeRepeatedVowels(['え', 'え', 'が'])).toEqual(['え', 'が']);
+    expect(mergeRepeatedVowels(['お', 'お', 'お'])).toEqual(['お']);
+  });
+  it('keeps different vowels and ん', () => {
+    expect(mergeRepeatedVowels(['あ', 'い'])).toEqual(['あ', 'い']);
+    expect(mergeRepeatedVowels(['ん', 'ん'])).toEqual(['ん', 'ん']);
+    expect(mergeRepeatedVowels(['か', 'い'])).toEqual(['か', 'い']);
   });
 });

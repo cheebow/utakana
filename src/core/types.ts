@@ -31,8 +31,8 @@ export type Segment =
 export type FixedSource = 'ruby' | 'user' | 'builtin';
 
 export type LongVowelMark = 'vowel' | 'hyphen' | 'keep' | 'drop';
-/** 促音「っ」の扱い: 直前のモーラに付ける / 単独モーラ / 削除 */
-export type SokuonMode = 'attach' | 'separate' | 'drop';
+/** 促音「っ」の扱い: 直前のモーラに付ける / 単独モーラ / 直前の母音にする / 削除 */
+export type SokuonMode = 'attach' | 'separate' | 'vowel' | 'drop';
 /** 撥音「ん」の扱い: 単独モーラ / 直前のモーラに付ける */
 export type HatsuonMode = 'separate' | 'attach';
 export type OutputFormat = 'plain' | 'space';
@@ -46,6 +46,12 @@ export interface Settings {
   sokuon: SokuonMode;
   /** 撥音「ん」の扱い */
   hatsuon: HatsuonMode;
+  /** トークン内の えい → ええ（先生→せんせえ） */
+  eiToEe: boolean;
+  /** 「言う」「いう」→ ゆう */
+  iuToYuu: boolean;
+  /** トークン内で同じ母音が続くとき 1 つにまとめる（とおきょお→ときょ） */
+  mergeSameVowel: boolean;
   /** を→お */
   woToO: boolean;
   /** ぢ→じ、づ→ず */
@@ -63,6 +69,9 @@ export const DEFAULT_SETTINGS: Settings = {
   longVowelMark: 'vowel',
   sokuon: 'attach',
   hatsuon: 'separate',
+  eiToEe: true,
+  iuToYuu: true,
+  mergeSameVowel: false,
   woToO: true,
   diDuToJiZu: false,
   keepSymbols: false,

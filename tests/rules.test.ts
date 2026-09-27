@@ -63,3 +63,26 @@ describe('applyLineRules', () => {
     expect(applyLineRules(['ちぢむ'], DEFAULT_SETTINGS)).toEqual(['ちぢむ']);
   });
 });
+
+describe('token rules (えい→ええ, いう→ゆう, っ→母音)', () => {
+  it('converts えい inside a dictionary reading', () => {
+    expect(resolveReading(tok({ surface: '先生', reading: 'センセイ', pronunciation: 'センセイ' }), DEFAULT_SETTINGS)).toBe('せんせえ');
+    expect(resolveReading(tok({ surface: 'きれい', reading: 'キレイ', pronunciation: 'キレイ' }), { ...DEFAULT_SETTINGS, eiToEe: false })).toBe('きれい');
+  });
+  it('converts いう only when the token reading is いう', () => {
+    expect(resolveReading(tok({ surface: '言う', reading: 'イウ', pronunciation: 'イウ' }), DEFAULT_SETTINGS)).toBe('ゆう');
+    expect(resolveReading(tok({ surface: '言う', reading: 'イウ', pronunciation: 'イウ' }), { ...DEFAULT_SETTINGS, iuToYuu: false })).toBe('いう');
+    expect(resolveReading(tok({ surface: '思い', reading: 'オモイ', pronunciation: 'オモイ' }), DEFAULT_SETTINGS)).toBe('おもい');
+  });
+  it('leaves explicit readings (manual / ruby / user) as written', () => {
+    expect(resolveReading(tok({ surface: '先生', reading: 'センセイ', manualReading: 'せんせい' }), DEFAULT_SETTINGS)).toBe('せんせい');
+    expect(resolveReading(tok({ surface: '先生', reading: 'せんせい', source: 'ruby' }), DEFAULT_SETTINGS)).toBe('せんせい');
+    expect(resolveReading(tok({ surface: '言う', reading: 'いう', source: 'user' }), DEFAULT_SETTINGS)).toBe('いう');
+  });
+  it('replaces っ with the previous vowel in vowel mode', () => {
+    expect(applyLineRules(['あがっ', 'て'], { ...DEFAULT_SETTINGS, sokuon: 'vowel' })).toEqual(['あがあ', 'て']);
+    expect(applyLineRules(['きどっ', 'た'], { ...DEFAULT_SETTINGS, sokuon: 'vowel' })).toEqual(['きどお', 'た']);
+    expect(applyLineRules(['っ', 'て'], { ...DEFAULT_SETTINGS, sokuon: 'vowel' })).toEqual(['', 'て']);
+    expect(applyLineRules(['あがっ', 'て'], DEFAULT_SETTINGS)).toEqual(['あがっ', 'て']);
+  });
+});

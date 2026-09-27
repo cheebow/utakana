@@ -65,7 +65,7 @@ export function ResultView({ lines, editing, onEdit, onSubmitReading, onClearRea
                   );
                 })}
               </div>
-              <span className="line-count" title="この行のモーラ数">
+              <span className="line-count" title="この行の音の数（音符の目安）">
                 {line.moras.length}
               </span>
             </div>

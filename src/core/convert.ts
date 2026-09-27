@@ -1,7 +1,7 @@
 import { formatOutput, countMoras, type MoraCount } from './format';
 import { BUILTIN_DICT } from './builtinDict';
 import { isAllKana, isKanji, normalizeInput } from './kana';
-import { applyMoraRules, splitMora } from './mora';
+import { applyMoraRules, mergeRepeatedVowels, splitMora } from './mora';
 import { parseRuby } from './ruby';
 import { applyLineRules, resolveReading } from './rules';
 import type { RawToken, TokenizeFn } from './tokenizer';
@@ -166,10 +166,11 @@ export function render(lines: Line[], settings: Settings): ConvertResult {
   const converted: ConvertedLine[] = lines.map((line) => {
     const base = line.tokens.map((t) => resolveReading(t, settings));
     const readings = applyLineRules(base, settings);
-    const moras = applyMoraRules(
-      readings.flatMap((r) => splitMora(r)),
-      { sokuon: settings.sokuon, hatsuon: settings.hatsuon },
-    );
+    const perToken = readings.map((r) => {
+      const m = splitMora(r);
+      return settings.mergeSameVowel ? mergeRepeatedVowels(m) : m;
+    });
+    const moras = applyMoraRules(perToken.flat(), { sokuon: settings.sokuon, hatsuon: settings.hatsuon });
     return { ...line, readings, moras };
   });
   const moraLines = converted.map((l) => l.moras);

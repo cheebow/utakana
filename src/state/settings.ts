@@ -11,7 +11,7 @@ function validateSettings(raw: unknown): Settings | null {
   const r = raw as Record<string, unknown>;
   const s: Settings = { ...DEFAULT_SETTINGS };
   const current = r.version === SETTINGS_VERSION;
-  for (const key of ['usePronunciation', 'woToO', 'diDuToJiZu', 'keepSymbols', 'parenRuby'] as const) {
+  for (const key of ['usePronunciation', 'woToO', 'diDuToJiZu', 'keepSymbols', 'parenRuby', 'eiToEe', 'iuToYuu', 'mergeSameVowel'] as const) {
     // v1 以前の保存では woToO の既定が OFF だったため、旧保存分は新しい既定（ON）に移行する
     if (key === 'woToO' && !current) continue;
     if (typeof r[key] === 'boolean') s[key] = r[key];
@@ -19,7 +19,7 @@ function validateSettings(raw: unknown): Settings | null {
   if (r.longVowelMark === 'vowel' || r.longVowelMark === 'hyphen' || r.longVowelMark === 'keep' || r.longVowelMark === 'drop') {
     s.longVowelMark = r.longVowelMark;
   }
-  if (r.sokuon === 'attach' || r.sokuon === 'separate' || r.sokuon === 'drop') s.sokuon = r.sokuon;
+  if (r.sokuon === 'attach' || r.sokuon === 'separate' || r.sokuon === 'vowel' || r.sokuon === 'drop') s.sokuon = r.sokuon;
   if (r.hatsuon === 'separate' || r.hatsuon === 'attach') s.hatsuon = r.hatsuon;
   if (r.outputFormat === 'plain' || r.outputFormat === 'space') {
     s.outputFormat = r.outputFormat;
