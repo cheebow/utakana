@@ -30,6 +30,37 @@ describe('applyUserDict', () => {
   });
 });
 
+describe('applyUserDict (latin words)', () => {
+  const love = [{ surface: 'love', reading: 'らぶ' }];
+  it('matches whole words ignoring case and keeps the input spelling', () => {
+    expect(applyUserDict([{ kind: 'text', text: 'Love you' }], love)).toEqual([
+      { kind: 'fixed', surface: 'Love', reading: 'らぶ', source: 'user' },
+      { kind: 'text', text: ' you' },
+    ]);
+    expect(applyUserDict([{ kind: 'text', text: 'LOVEソング' }], love)).toEqual([
+      { kind: 'fixed', surface: 'LOVE', reading: 'らぶ', source: 'user' },
+      { kind: 'text', text: 'ソング' },
+    ]);
+  });
+  it('does not match inside a longer word', () => {
+    const segs: Segment[] = [{ kind: 'text', text: "lovely love's" }];
+    expect(applyUserDict(segs, love)).toEqual(segs);
+  });
+  it('matches words with apostrophes', () => {
+    expect(applyUserDict([{ kind: 'text', text: "I don't" }], [{ surface: "don't", reading: 'どんと' }])).toEqual([
+      { kind: 'text', text: 'I ' },
+      { kind: 'fixed', surface: "don't", reading: 'どんと', source: 'user' },
+    ]);
+  });
+  it('prefers a mixed entry over a latin word entry', () => {
+    const out = applyUserDict([{ kind: 'text', text: 'LOVEソング' }], [
+      ...love,
+      { surface: 'LOVEソング', reading: 'らぶそんぐ' },
+    ]);
+    expect(out).toEqual([{ kind: 'fixed', surface: 'LOVEソング', reading: 'らぶそんぐ', source: 'user' }]);
+  });
+});
+
 describe('normalizeUserDict', () => {
   it('dedupes with last-wins and drops empties', () => {
     expect(

@@ -13,7 +13,7 @@ export function resolveReading(token: Token, settings: Settings): string {
   if (token.source === 'ruby' || token.source === 'user') {
     return kataToHira(token.reading ?? token.surface);
   }
-  if (token.source === 'unknown') return token.surface;
+  if (token.source === 'unknown' || token.source === 'latin') return token.surface;
   const base = settings.usePronunciation
     ? mergePronunciation(token.reading, token.pronunciation)
     : token.reading;

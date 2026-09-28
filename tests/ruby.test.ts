@@ -34,6 +34,19 @@ describe('parseRuby', () => {
     expect(parseRuby('笑う（笑）')).toEqual([{ kind: 'text', text: '笑う（笑）' }]);
     expect(parseRuby('東京（Tokyo）')).toEqual([{ kind: 'text', text: '東京（Tokyo）' }]);
   });
+  it('accepts a latin word as the base text', () => {
+    expect(parseRuby('Love《らぶ》を')).toEqual([
+      { kind: 'fixed', surface: 'Love', reading: 'らぶ', source: 'ruby' },
+      { kind: 'text', text: 'を' },
+    ]);
+    expect(parseRuby('Tokyo（とうきょう）')).toEqual([
+      { kind: 'fixed', surface: 'Tokyo', reading: 'とうきょう', source: 'ruby' },
+    ]);
+    expect(parseRuby("don't《どんと》")).toEqual([
+      { kind: 'fixed', surface: "don't", reading: 'どんと', source: 'ruby' },
+    ]);
+    expect(parseRuby('love(you)')).toEqual([{ kind: 'text', text: 'love(you)' }]);
+  });
   it('can disable paren ruby', () => {
     expect(parseRuby('運命（さだめ）', { parenRuby: false })).toEqual([
       { kind: 'text', text: '運命（さだめ）' },

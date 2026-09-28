@@ -33,7 +33,7 @@ describe('convert (real wasm)', () => {
     expect(lines).toHaveLength(1);
     const [hello, bokaro] = lines[0].tokens;
     expect(hello.surface).toBe('Hello');
-    expect(hello.source).toBe('unknown');
+    expect(hello.source).toBe('latin');
     expect(bokaro.surface).toBe('ボカロ');
     expect(bokaro.source).toBe('dict');
     const result = render(lines, DEFAULT_SETTINGS);
@@ -98,6 +98,52 @@ describe('convert (real wasm)', () => {
     const result = convert('', tokenize, opts());
     expect(result.output).toBe('');
     expect(result.moraCount.total).toBe(0);
+  });
+});
+
+describe('english words (real wasm)', () => {
+  it('keeps english words as they are and preserves the spaces between them', () => {
+    const result = convert('I love you', tokenize, opts());
+    expect(result.output).toBe('I love you');
+    expect(result.moraCount.perLine).toEqual([3]);
+    expect(result.lines[0].moraCount).toBe(3);
+    expect(result.lines[0].tokens.map((t) => t.source)).toEqual(['latin', 'latin', 'latin']);
+    expect(convert('I love you', tokenize, opts({ outputFormat: 'space' })).output).toBe('I love you');
+    expect(convert('I　love', tokenize, opts()).output).toBe('I love');
+  });
+  it('keeps apostrophe words together', () => {
+    const lines = analyze("don't stop", tokenize, opts());
+    expect(lines[0].tokens.map((t) => t.surface)).toEqual(["don't", 'stop']);
+    expect(render(lines, DEFAULT_SETTINGS).output).toBe("don't stop");
+  });
+  it('treats ascii punctuation as symbols', () => {
+    expect(convert('Hello, world!', tokenize, opts()).output).toBe('Hello world');
+    const kept = convert('Hello, world!', tokenize, opts({ keepSymbols: true }));
+    expect(kept.output).toBe('Hello, world!');
+    const comma = kept.lines[0].tokens[1];
+    expect(comma.surface).toBe(',');
+    expect(comma.pos).toBe('記号');
+    expect(comma.source).toBe('dict');
+    expect(convert('恋♪', tokenize, opts()).output).toBe('こい');
+  });
+  it('does not insert spaces next to japanese', () => {
+    expect(convert('LOVEソング', tokenize, opts()).output).toBe('LOVEそんぐ');
+    expect(convert('君と love you', tokenize, opts()).output).toBe('きみとlove you');
+    expect(convert('love 君', tokenize, opts()).output).toBe('loveきみ');
+    expect(convert(' love', tokenize, opts()).output).toBe('love');
+    expect(convert('君と 僕と', tokenize, opts()).output).toBe('きみとぼくと');
+  });
+  it('drops the space once a word is read in kana', () => {
+    const key = overrideKey(0, 1, 'love');
+    expect(convert('I love you', tokenize, { ...opts(), overrides: { [key]: 'らぶ' } }).output).toBe('Iらぶyou');
+    const result = convert('Love you', tokenize, opts({}, [{ surface: 'love', reading: 'らぶ' }]));
+    expect(result.output).toBe('らぶyou');
+    expect(result.lines[0].tokens[0].source).toBe('user');
+    expect(convert('Love《らぶ》 you', tokenize, opts()).output).toBe('らぶyou');
+  });
+  it('keeps kanji merging intact around latin words', () => {
+    const lines = analyze('鵺鵼 love 鵺鵼', tokenize, opts());
+    expect(lines[0].tokens.map((t) => t.surface)).toEqual(['鵺鵼', 'love', '鵺鵼']);
   });
 });
 

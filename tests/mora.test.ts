@@ -39,6 +39,8 @@ describe('applyMoraRules', () => {
     expect(applyMoraRules(['す', 'き', 'っ'], attach)).toEqual(['す', 'き']);
     expect(applyMoraRules(['っ', 'て'], attach)).toEqual(['っ', 'て']);
     expect(applyMoraRules(['Hello', 'っ', 'て'], attach)).toEqual(['Hello', 'っ', 'て']);
+    // 英単語間の区切り（' '）をまたいで付けない
+    expect(applyMoraRules(['love', ' ', 'っ', 'て'], attach)).toEqual(['love', ' ', 'っ', 'て']);
   });
   it('supports separate and drop for っ', () => {
     expect(applyMoraRules(['き', 'っ', 'と'], { sokuon: 'separate', hatsuon: 'separate' })).toEqual(['き', 'っ', 'と']);

@@ -19,6 +19,7 @@ const SOURCE_LABEL: Record<ChipKind, string> = {
   ruby: 'ルビ',
   user: 'ユーザー辞書',
   manual: '手動修正',
+  latin: '英字（そのまま）',
   unknown: '未変換',
 };
 

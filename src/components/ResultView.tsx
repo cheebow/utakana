@@ -27,6 +27,7 @@ export function ResultView({ lines, editing, onEdit, onSubmitReading, onClearRea
           <li className="legend-ruby">ルビ</li>
           <li className="legend-user">ユーザー辞書</li>
           <li className="legend-manual">手動修正</li>
+          <li className="legend-latin">英字</li>
           <li className="legend-unknown">未変換</li>
         </ul>
       </div>
@@ -66,7 +67,7 @@ export function ResultView({ lines, editing, onEdit, onSubmitReading, onClearRea
                 })}
               </div>
               <span className="line-count" title="この行の音の数（音符の目安）">
-                {line.moras.length}
+                {line.moraCount}
               </span>
             </div>
           ))

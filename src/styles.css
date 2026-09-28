@@ -15,6 +15,8 @@
   --chip-user-border: #7ccb98;
   --chip-manual-bg: #fff0d9;
   --chip-manual-border: #f0b35b;
+  --chip-latin-bg: #eef3f1;
+  --chip-latin-border: #b9c9c2;
   --chip-unknown-bg: #ffe6e6;
   --chip-unknown-border: #e88a8a;
   --danger: #c43d3d;
@@ -40,6 +42,8 @@
     --chip-user-border: #3f9a63;
     --chip-manual-bg: #43321a;
     --chip-manual-border: #c68a2f;
+    --chip-latin-bg: #262f2c;
+    --chip-latin-border: #4a6259;
     --chip-unknown-bg: #4a2323;
     --chip-unknown-border: #c25c5c;
     --danger: #ff7b7b;
@@ -330,13 +334,14 @@ select:focus {
 .legend-ruby::before { background: var(--chip-ruby-bg); border-color: var(--chip-ruby-border) !important; }
 .legend-user::before { background: var(--chip-user-bg); border-color: var(--chip-user-border) !important; }
 .legend-manual::before { background: var(--chip-manual-bg); border-color: var(--chip-manual-border) !important; }
+.legend-latin::before { background: var(--chip-latin-bg); border-color: var(--chip-latin-border) !important; }
 .legend-unknown::before { background: var(--chip-unknown-bg); border-color: var(--chip-unknown-border) !important; }
 
 .result-lines {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  overflow: auto;
+  /* overflow を隠すとチップ下に出る読みエディタが行の下端で切れるので、ページ全体のスクロールに任せる */
 }
 .result-line {
   display: grid;
@@ -397,6 +402,7 @@ select:focus {
 .chip-ruby { background: var(--chip-ruby-bg); border-color: var(--chip-ruby-border); }
 .chip-user { background: var(--chip-user-bg); border-color: var(--chip-user-border); }
 .chip-manual { background: var(--chip-manual-bg); border-color: var(--chip-manual-border); }
+.chip-latin { background: var(--chip-latin-bg); border-color: var(--chip-latin-border); }
 .chip-unknown { background: var(--chip-unknown-bg); border-color: var(--chip-unknown-border); border-style: dashed; }
 .chip-active {
   outline: 2px solid var(--accent);

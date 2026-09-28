@@ -54,7 +54,7 @@ export function OutputPanel({ output, moraCount, format, onFormatChange }: Props
               <option value="space">1 音ずつスペース区切り</option>
             </select>
           </label>
-          <span className="mora-total" title="音の数の合計。1 音 = 音符 1 つの目安（英字などの未変換部分は 1 かたまりで 1 音）">
+          <span className="mora-total" title="音の数の合計。1 音 = 音符 1 つの目安（英単語は 1 語 1 音、未変換部分は 1 かたまりで 1 音）">
             {moraCount.total} 音 / {lineCount} 行
           </span>
           <button type="button" className="primary" onClick={async () => setCopied((await copyText(output)) ? 'ok' : 'fail')} disabled={!output}>

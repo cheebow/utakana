@@ -1,12 +1,15 @@
 import { isAllKana } from './kana';
+import { LATIN_WORD_SRC } from './latin';
 import type { Segment } from './types';
 
 const KANJI = '[\\p{Script=Han}々〆〇]';
-// 1: |親《ルビ》  2: 漢字《ルビ》  3: 漢字（ルビ）
+// `|` なしの親文字は漢字の連続、または英字語（Love《らぶ》）
+const PARENT = `(?:${KANJI}+|${LATIN_WORD_SRC})`;
+// 1: |親《ルビ》  2: 親《ルビ》  3: 親（ルビ）
 const RUBY_RE = new RegExp(
   `[|｜]([^|｜《》\\n]+)《([^《》\\n]*)》` +
-    `|(${KANJI}+)《([^《》\\n]*)》` +
-    `|(${KANJI}+)[（(]([^（）()\\n]*)[）)]`,
+    `|(${PARENT})《([^《》\\n]*)》` +
+    `|(${PARENT})[（(]([^（）()\\n]*)[）)]`,
   'gu',
 );
 
@@ -20,6 +23,7 @@ export interface RubyOptions {
  * - `|運命《さだめ》` / `｜運命《さだめ》`
  * - `運命《さだめ》`（《 直前の漢字の連続を親文字とする）
  * - `運命（さだめ）` / `運命(さだめ)`（括弧内がすべてかなのとき。parenRuby=false で無効）
+ * - 親文字は英字語でもよい（`Love《らぶ》` / `Love（らぶ）`）
  * ルビ部分がかなでなければルビとみなさず、そのままテキストとして残す。
  */
 export function parseRuby(text: string, options: RubyOptions = { parenRuby: true }): Segment[] {

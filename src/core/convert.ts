@@ -1,6 +1,7 @@
-import { formatOutput, countMoras, type MoraCount } from './format';
+import { WORD_SEP, countMoraList, countMoras, formatOutput, type MoraCount } from './format';
 import { BUILTIN_DICT } from './builtinDict';
 import { isAllKana, isKanji, normalizeInput } from './kana';
+import { isWordSepNeighbor, splitLatinWords } from './latin';
 import { applyMoraRules, mergeRepeatedVowels, splitMora } from './mora';
 import { parseRuby } from './ruby';
 import { applyLineRules, resolveReading } from './rules';
@@ -24,8 +25,10 @@ export interface ConvertOptions {
 export interface ConvertedLine extends Line {
   /** トークンごとの最終的な読み（ルール適用後、ひらがな） */
   readings: string[];
-  /** 行のモーラ列 */
+  /** 行のモーラ列（英単語間の区切り WORD_SEP を含む） */
   moras: string[];
+  /** 行の音数（区切りを除く） */
+  moraCount: number;
 }
 
 export interface ConvertResult {
@@ -38,6 +41,8 @@ export interface ConvertResult {
 type TokenDraft = Omit<Token, 'id'>;
 
 const SYMBOL_POS = new Set(['記号']);
+/** IPADIC が記号と認識しない半角記号など（, ! ' ♪ …）。記号設定に従わせるため品詞を記号に寄せる */
+const PUNCT_RE = /^[\p{P}\p{S}]+$/u;
 
 function isWhitespace(s: string): boolean {
   return /^\s+$/.test(s);
@@ -47,6 +52,9 @@ function isWhitespace(s: string): boolean {
 function normalizeRawToken(raw: RawToken): TokenDraft {
   const surface = raw.surface;
   if (raw.partOfSpeech === 'UNK') {
+    if (PUNCT_RE.test(surface)) {
+      return { surface, reading: surface, pronunciation: null, pos: '記号', source: 'dict' };
+    }
     if (isAllKana(surface)) {
       return { surface, reading: surface, pronunciation: null, pos: 'UNK', source: 'dict' };
     }
@@ -94,7 +102,14 @@ function mergeUnknownKanji(tokens: TokenDraft[]): TokenDraft[] {
     }
     if (hasUnknown && j - i > 1) {
       const surface = tokens.slice(i, j).map((t) => t.surface).join('');
-      out.push({ surface, reading: null, pronunciation: null, pos: 'UNK', source: 'unknown' });
+      out.push({
+        surface,
+        reading: null,
+        pronunciation: null,
+        pos: 'UNK',
+        source: 'unknown',
+        spaceBefore: tokens[i].spaceBefore,
+      });
     } else {
       out.push(...tokens.slice(i, j));
     }
@@ -106,14 +121,26 @@ function mergeUnknownKanji(tokens: TokenDraft[]): TokenDraft[] {
 /**
  * セグメント列 → 行ごとのトークン列。
  * 改行はテキストセグメント内にのみ現れる（ルビ・辞書見出しは改行を含まない）。
+ * 英字語は形態素解析に通さず 1 語 1 トークン（source: 'latin'）として切り出す。
+ * 空白は捨てるが、直後のトークンに spaceBefore を立てて英単語間の区切りを復元できるようにする。
  */
 function segmentsToLines(segments: Segment[], tokenize: TokenizeFn, settings: Settings): Line[] {
   const lines: Line[] = [{ index: 0, tokens: [] }];
   const current = () => lines[lines.length - 1];
-  const newLine = () => lines.push({ index: lines.length, tokens: [] });
+  // 直前に空白があった（記号を落としても持ち越し、次に push するトークンに付ける）
+  let pendingSpace = false;
+  const newLine = () => {
+    lines.push({ index: lines.length, tokens: [] });
+    pendingSpace = false;
+  };
   const push = (t: TokenDraft) => {
     const line = current();
     line.tokens.push({ ...t, id: `${line.index}:${line.tokens.length}` });
+  };
+  const takeSpace = (): boolean => {
+    const s = pendingSpace;
+    pendingSpace = false;
+    return s;
   };
 
   for (const seg of segments) {
@@ -124,6 +151,7 @@ function segmentsToLines(segments: Segment[], tokenize: TokenizeFn, settings: Se
         pronunciation: null,
         pos: seg.source,
         source: seg.source === 'builtin' ? 'dict' : seg.source,
+        spaceBefore: takeSpace(),
       });
       continue;
     }
@@ -133,11 +161,28 @@ function segmentsToLines(segments: Segment[], tokenize: TokenizeFn, settings: Se
       if (i > 0) newLine();
       if (part.length === 0) return;
       const toks: TokenDraft[] = [];
-      for (const raw of tokenize(part)) {
-        if (isWhitespace(raw.surface)) continue;
-        const tok = normalizeRawToken(raw);
-        if (!settings.keepSymbols && SYMBOL_POS.has(tok.pos)) continue;
-        toks.push(tok);
+      for (const chunk of splitLatinWords(part)) {
+        if (chunk.kind === 'latin') {
+          toks.push({
+            surface: chunk.text,
+            reading: null,
+            pronunciation: null,
+            pos: 'latin',
+            source: 'latin',
+            spaceBefore: takeSpace(),
+          });
+          continue;
+        }
+        for (const raw of tokenize(chunk.text)) {
+          if (isWhitespace(raw.surface)) {
+            pendingSpace = true;
+            continue;
+          }
+          const tok = normalizeRawToken(raw);
+          if (!settings.keepSymbols && SYMBOL_POS.has(tok.pos)) continue;
+          tok.spaceBefore = takeSpace();
+          toks.push(tok);
+        }
       }
       for (const tok of mergeUnknownKanji(toks)) push(tok);
     });
@@ -173,8 +218,21 @@ export function render(lines: Line[], settings: Settings): ConvertResult {
       const m = splitMora(r);
       return settings.mergeSameVowel ? mergeRepeatedVowels(m) : m;
     });
-    const moras = applyMoraRules(perToken.flat(), { sokuon: settings.sokuon, hatsuon: settings.hatsuon });
-    return { ...line, readings, moras };
+    // トークン境界で英単語間の区切りを復元する（両隣が ASCII / ラテン文字のときだけ）
+    const joined: string[] = [];
+    let prevLast: string | null = null;
+    line.tokens.forEach((t, i) => {
+      const m = perToken[i];
+      if (m.length === 0) return;
+      const first = [...m[0]][0];
+      if (t.spaceBefore && prevLast !== null && isWordSepNeighbor(prevLast) && isWordSepNeighbor(first)) {
+        joined.push(WORD_SEP);
+      }
+      joined.push(...m);
+      prevLast = [...m[m.length - 1]].at(-1) ?? null;
+    });
+    const moras = applyMoraRules(joined, { sokuon: settings.sokuon, hatsuon: settings.hatsuon });
+    return { ...line, readings, moras, moraCount: countMoraList(moras) };
   });
   const moraLines = converted.map((l) => l.moras);
   return {

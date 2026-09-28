@@ -1,5 +1,5 @@
 /** トークンの読みの出どころ */
-export type TokenSource = 'dict' | 'ruby' | 'user' | 'unknown';
+export type TokenSource = 'dict' | 'ruby' | 'user' | 'latin' | 'unknown';
 
 export interface Token {
   /** 行内で一意な ID（"行番号:連番"） */
@@ -15,6 +15,8 @@ export interface Token {
   source: TokenSource;
   /** ユーザーが手で修正した読み（ひらがな） */
   manualReading?: string;
+  /** 入力で直前に空白があった（英単語間の区切りの復元に使う） */
+  spaceBefore?: boolean;
 }
 
 export interface Line {
