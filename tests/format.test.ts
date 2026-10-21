@@ -10,6 +10,10 @@ describe('formatOutput', () => {
   it('space', () => {
     expect(formatOutput(lines, 'space')).toBe('ぼ く わ\n\nきゃ っ と');
   });
+  it('word joins moras and keeps the separators render inserted', () => {
+    const withSep = [['ぼ', 'く', 'わ', WORD_SEP, 'ね', 'こ'], ['にゃ']];
+    expect(formatOutput(withSep, 'word')).toBe('ぼくわ ねこ\nにゃ');
+  });
 });
 
 describe('countMoras', () => {

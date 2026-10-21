@@ -5,6 +5,7 @@ import { isWordSepNeighbor, splitLatinWords } from './latin';
 import { applyMoraRules, mergeRepeatedVowels, splitMora } from './mora';
 import { parseRuby } from './ruby';
 import { applyLineRules, resolveReading } from './rules';
+import { segmentBreaks } from './wakachi';
 import type { RawToken, TokenizeFn } from './tokenizer';
 import type { Line, Segment, Settings, Token, UserDictEntry } from './types';
 import { applyUserDict } from './userDict';
@@ -218,14 +219,19 @@ export function render(lines: Line[], settings: Settings): ConvertResult {
       const m = splitMora(r);
       return settings.mergeSameVowel ? mergeRepeatedVowels(m) : m;
     });
-    // トークン境界で英単語間の区切りを復元する（両隣が ASCII / ラテン文字のときだけ）
+    // トークン境界で英単語間の区切りを復元する（両隣が ASCII / ラテン文字のときだけ）。
+    // 分かち書き（word）では、ことばの区切りと入力中の空白の位置に区切りを入れる
+    const breaks = settings.outputFormat === 'word' ? segmentBreaks(line.tokens) : null;
     const joined: string[] = [];
     let prevLast: string | null = null;
     line.tokens.forEach((t, i) => {
       const m = perToken[i];
       if (m.length === 0) return;
       const first = [...m[0]][0];
-      if (t.spaceBefore && prevLast !== null && isWordSepNeighbor(prevLast) && isWordSepNeighbor(first)) {
+      const sep = breaks
+        ? breaks[i] || t.spaceBefore === true
+        : t.spaceBefore && prevLast !== null && isWordSepNeighbor(prevLast) && isWordSepNeighbor(first);
+      if (sep && joined.length > 0 && joined[joined.length - 1] !== WORD_SEP) {
         joined.push(WORD_SEP);
       }
       joined.push(...m);

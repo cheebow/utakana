@@ -37,7 +37,8 @@ export type LongVowelMark = 'vowel' | 'hyphen' | 'keep' | 'drop';
 export type SokuonMode = 'attach' | 'separate' | 'vowel' | 'drop';
 /** 撥音「ん」の扱い: 単独モーラ / 直前のモーラに付ける */
 export type HatsuonMode = 'separate' | 'attach';
-export type OutputFormat = 'plain' | 'space';
+/** 出力形式: 連続 / 1 音ずつスペース / ことばごとスペース（分かち書き） */
+export type OutputFormat = 'plain' | 'space' | 'word';
 
 export interface Settings {
   /** 発音形（は→わ、東京→とーきょー）を優先する */

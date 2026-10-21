@@ -11,7 +11,7 @@ const ENUM_OPTIONS = {
   longVowelMark: ['vowel', 'hyphen', 'keep', 'drop'],
   sokuon: ['attach', 'separate', 'vowel', 'drop'],
   hatsuon: ['separate', 'attach'],
-  outputFormat: ['plain', 'space'],
+  outputFormat: ['plain', 'word', 'space'],
 } as const satisfies { [K in keyof Settings as Settings[K] extends string ? K : never]: readonly Settings[K][] };
 
 /**

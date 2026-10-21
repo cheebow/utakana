@@ -51,6 +51,7 @@ export function OutputPanel({ output, moraCount, format, onFormatChange }: Props
             形式
             <select value={format} onChange={(e) => onFormatChange(e.target.value as OutputFormat)}>
               <option value="plain">連続（行ごと）</option>
+              <option value="word">ことばごとスペース区切り</option>
               <option value="space">1 音ずつスペース区切り</option>
             </select>
           </label>

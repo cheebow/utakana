@@ -73,6 +73,30 @@ describe('convert (real wasm)', () => {
     const separate = convert('きゃっと', tokenize, opts({ outputFormat: 'space', sokuon: 'separate' }));
     expect(separate.output).toBe('きゃ っ と');
   });
+  it('outputs word format (文節寄りの分かち書き)', () => {
+    const o = (t: string, extra: Partial<Settings> = {}) =>
+      convert(t, tokenize, opts({ outputFormat: 'word', ...extra })).output;
+    // 助詞は前のことばに付き、自立語で区切る
+    expect(o('僕は東京へ行った')).toBe('ぼくわ とおきょおえ いった');
+    // 名詞の連続はひとまとまり（複合名詞）
+    expect(o('通院介助が大事')).toBe('つういんかいじょが だいじ');
+    // 入力の空白は常に区切りになる（明細の列区切り）
+    expect(o('君 僕')).toBe('きみ ぼく');
+    // 句読点は前に付き、直後で区切る
+    expect(o('さくら、さくら。', { keepSymbols: true })).toBe('さくら、 さくら。');
+    // 既存形式は変わらない
+    expect(convert('僕は東京へ行った', tokenize, opts()).output).toBe('ぼくわとおきょおえいった');
+  });
+  it('does not attach っ across word boundaries', () => {
+    // 手動修正でことばの頭に「っ」を置いても、前のことばには付かない
+    const key = overrideKey(0, 1, '手');
+    const result = convert('君 手', tokenize, {
+      ...opts({ outputFormat: 'word' }),
+      overrides: { [key]: 'って' },
+    });
+    expect(result.output).toBe('きみ って');
+    expect(result.moraCount.total).toBe(4);
+  });
   it('keeps づ by default and unifies it only with diDuToJiZu', () => {
     expect(convert('徒然綴る', tokenize, opts()).output).toBe('つれづれつづる');
     expect(convert('徒然綴る', tokenize, opts({ diDuToJiZu: true })).output).toBe('つれずれつずる');

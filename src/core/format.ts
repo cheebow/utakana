@@ -6,11 +6,13 @@ export const WORD_SEP = ' ';
 /**
  * 行ごとのモーラ配列を出力文字列に整形する。
  * - plain: 行内は連結、改行維持（英単語間の区切りはそのまま残る）
+ * - word: ことばの区切りは render が WORD_SEP として挿入済みなので plain と同じ整形
  * - space: モーラをスペース区切り（区切りモーラは除いて二重スペースを避ける）
  */
 export function formatOutput(moraLines: string[][], format: OutputFormat): string {
   switch (format) {
     case 'plain':
+    case 'word':
       return moraLines.map((m) => m.join('')).join('\n');
     case 'space':
       return moraLines.map((m) => m.filter((x) => x !== WORD_SEP).join(' ')).join('\n');
